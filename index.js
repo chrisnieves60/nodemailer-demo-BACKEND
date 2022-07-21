@@ -115,7 +115,7 @@ app.listen(5000, () => {
     console.log("server started on port 5000, heyyy"); 
 })
 
-//verify email 
+//This function runs when the link in your email is clicked.
 app.get("/user/verify/:userId/:uniqueString", async (req, res) => {
     
     try {
@@ -255,7 +255,7 @@ catch (error){
 
 
 
-const login = async (request, response) => {
+app.post ("/login", async(request, response) => {
     try {
         const {email, password} = request.body; 
         let errors = {}
@@ -268,28 +268,24 @@ const login = async (request, response) => {
         if (user.rows.length === 0){
             response.status(400).json({ errors: "Email is not registered"});  
         }
+        const hashPassTrim = user.rows[0].password.trim(); //we trim the password from the db
 
-        const isMatch = await bcrypt.compare(password, user.rows[0].password); 
+        const isMatch = await bcrypt.compare(password, hashPassTrim); //compare pw to hashed pw
         if(!isMatch){
-            errors.password = "Password is incorrect"; 
+            response.status(401).json({ errors: "Password is incorrect"}); 
         }
-        if (Object.keys(errors).length > 0){
-            return response.status(401).json(errors); 
-        }/*
         if (user.rows[0].verified){
             //if they are verified 
-            res.json({
-                status: "SUCCESS", 
-                message: "successful login!"}); 
+            response.json({username: user.rows[0].username}); 
         }else{
             //they are not verified
-            res.json({
-                status: "FAILED", 
-                message: "login unsuccessful, please verify your email "})
-        }*/
-        response.json({success: true, data: user.rows[0] });
+            response.status(402).json({ errors: "Login unsuccessful, please verify your email"}); 
+        }
+
+        
+        
     }catch(error) {
         console.error(error.message)
     }
-}
+})
  
